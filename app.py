@@ -89,11 +89,13 @@ if uploaded_files:
         "Color": ["#aed581", "#fff176", "#ff8a65", "#e57373"]
     })
 
+    color_scale = alt.Scale(domain=domain_ranges["Domain"].tolist(), range=domain_ranges["Color"].tolist())
+
     base = alt.Chart(domain_ranges).mark_bar().encode(
         x=alt.X("Start:Q", title="Power (Watts)"),
         x2="End:Q",
         y=alt.value(60),
-        color=alt.Color("Domain:N", scale=alt.Scale(range=domain_ranges["Color"].tolist()), legend=None)
+        color=alt.Color("Domain:N", scale=color_scale, legend=None)
     ).properties(
         width=800,
         height=120
