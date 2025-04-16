@@ -79,80 +79,64 @@ if uploaded_files:
 
     st.markdown("---")
 
-    st.header("Exercise Intensity Domains")
+    st.header("Anaerobic Energy Contribution")
 
-    lt1 = cp * 0.75
-    domain_ranges = pd.DataFrame({
-        "Domain": ["Moderate", "Heavy", "Severe", "Extreme"],
-        "Start": [0, lt1, cp, map_watts],
-        "End": [lt1, cp, map_watts, map_watts + 150],
-        "Color": ["#aed581", "#fff176", "#ff8a65", "#e57373"]
+    watts = np.linspace(0, map_watts + 100, 200)
+    oxygen_demand = watts * 0.2
+    oxygen_uptake = np.where(watts <= cp, watts * 0.2, cp * 0.2 + (watts - cp) * 0.05)
+
+    vo2_df = pd.DataFrame({
+        "Power (W)": np.round(watts, 0),
+        "O₂ Demand": np.round(oxygen_demand, 1),
+        "O₂ Uptake": np.round(oxygen_uptake, 1)
     })
 
-    color_scale = alt.Scale(domain=domain_ranges["Domain"].tolist(), range=domain_ranges["Color"].tolist())
+    base = alt.Chart(vo2_df).encode(x=alt.X("Power (W):Q"))
 
-    base = alt.Chart(domain_ranges).mark_bar().encode(
-        x=alt.X("Start:Q", title="Power (Watts)"),
-        x2="End:Q",
-        y=alt.value(60),
-        color=alt.Color("Domain:N", scale=color_scale, legend=None)
-    ).properties(
-        width=800,
-        height=120
+    demand_line = base.mark_line(color="#1f77b4", strokeWidth=2).encode(
+        y=alt.Y("O₂ Demand:Q", title="Oxygen Equivalent (arbitrary units)")
     )
 
-    marker_df = pd.DataFrame({
-        "value": [lt1, cp, map_watts]
+    uptake_line = base.mark_line(color="#2ca02c", strokeWidth=2).encode(
+        y="O₂ Uptake:Q"
+    )
+
+    area = base.mark_area(opacity=0.3, color="#1f77b4").encode(
+        y="O₂ Uptake:Q",
+        y2="O₂ Demand:Q"
+    )
+
+    st.altair_chart(area + demand_line + uptake_line, use_container_width=True)
+
+    st.markdown("""
+    The Anaerobic Energy Contribution chart compares the oxygen demand of increasing power outputs
+    with the athlete's maximum sustainable aerobic capacity (O₂ uptake). Below Critical Power (CP),
+    the two curves overlap — meaning energy demands are fully met aerobically. Once power exceeds CP,
+    the oxygen demand curve continues rising, but oxygen uptake plateaus, creating the shaded gap.
+
+    This gap represents energy that must be supplied anaerobically — from the finite W′ battery.
+    The larger the gap and the longer you hold it, the faster W′ is depleted.
+    """)
+
+    st.markdown("---")
+
+    st.subheader("Power & Time Above CP")
+
+    step_powers = np.arange(cp + 10, cp + 310, 10)
+    depletion_times = w_prime / (step_powers - cp)
+
+    df_burn = pd.DataFrame({
+        "Power (W)": step_powers.astype(int),
+        "Time to W′ = 0 (s)": depletion_times.round(1),
+        "Minutes": (depletion_times / 60).round(2)
     })
 
-    lines = alt.Chart(marker_df).mark_rule(strokeDash=[4, 4], color="black").encode(
-        x='value:Q'
-    )
+    st.dataframe(df_burn, use_container_width=True)
 
-    st.altair_chart(base + lines, use_container_width=False)
+    st.markdown("""
+    This table shows the predicted time to exhaustion for constant efforts above Critical Power.
+    The further above CP you ride, the shorter you can hold that power before fully depleting W′.
+    These values help with pacing strategies and understanding your sprint or breakaway capacity.
+    """)
 
-    st.markdown(f"""
-    <style>
-    .domain-boxes {{
-        display: flex;
-        justify-content: space-between;
-        margin-top: 1rem;
-        font-family: sans-serif;
-    }}
-    .domain-box {{
-        flex: 1;
-        padding: 0.8rem;
-        margin: 0 0.5rem;
-        border-radius: 6px;
-        text-align: center;
-        font-size: 0.9rem;
-    }}
-    .mod {{ background-color: #aed581; border-top: 5px solid #aed581; }}
-    .heav {{ background-color: #fff176; border-top: 5px solid #fff176; }}
-    .sev {{ background-color: #ff8a65; border-top: 5px solid #ff8a65; }}
-    .ext {{ background-color: #e57373; border-top: 5px solid #e57373; }}
-    </style>
-
-    <div class="domain-boxes">
-        <div class="domain-box mod">
-            <strong>Moderate</strong><br>
-            0 – {lt1:.0f} W<br>
-            Sustainable aerobic
-        </div>
-        <div class="domain-box heav">
-            <strong>Heavy</strong><br>
-            {lt1:.0f} – {cp:.0f} W<br>
-            Lactate steady state
-        </div>
-        <div class="domain-box sev">
-            <strong>Severe</strong><br>
-            {cp:.0f} – {map_watts:.0f} W<br>
-            VO₂ + W′ depletion
-        </div>
-        <div class="domain-box ext">
-            <strong>Extreme</strong><br>
-            > {map_watts:.0f} W<br>
-            Sprints & fatigue
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("---")
