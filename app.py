@@ -219,13 +219,22 @@ if uploaded_files:
 
     ---
 
-    The Exercise Intensity Domains are structured ranges of power that reflect distinct physiological behaviour:
+    The Exercise Intensity Domains structure your cycling efforts into clearly defined physiological zones, each with distinct metabolic and fatigue characteristics:
 
-    **Phase Transition 1 (PT1)** is ~{lt1:.0f} W, where fat metabolism gives way to carbohydrates.
-    **Phase Transition 2 (PT2)** is your CP at {cp:.0f} W, marking the upper steady state boundary.
+- **Moderate Domain (below ~{lt1:.0f} W)**:  
+  Efforts here are sustainable for several hours. Your body rapidly reaches a steady aerobic state, primarily burning fat. Lactate remains low, breathing is easy, and fatigue occurs slowly, mostly from central mechanisms like motivation or mental fatigue.
 
-    Above CP, you enter Severe and Extreme domains where W′ depletion defines your limit.
-    Fractional utilisation ({frac_util:.0%}) reflects how close your CP is to MAP — an indicator of aerobic efficiency.
+- **Heavy Domain (~{lt1:.0f} W to {cp:.0f} W)**:  
+  Between **Phase Transition 1 (PT1)** (~{lt1:.0f} W, your lactate threshold) and **Phase Transition 2 (PT2)** (your Critical Power at {cp:.0f} W), lactate levels rise but stabilise. Oxygen uptake increases gradually (VO₂ slow component), resulting in a higher aerobic cost. Fatigue accumulates steadily, primarily from gradual glycogen depletion, but remains manageable for prolonged durations typical of endurance events like marathons.
 
-    Use these thresholds to plan your training, recovery and pacing. Understanding your transitions helps maximise aerobic conditioning and protect anaerobic reserves when it counts.
+- **Severe Domain ({cp:.0f} W to {map_watts:.0f} W)**:  
+  Above your Critical Power (CP), your body cannot maintain a metabolic steady state. Oxygen uptake continuously rises until reaching maximum (VO₂max). Efforts quickly tap into your finite anaerobic energy reserves (W′), limiting sustainable durations typically to less than 40 minutes. Fatigue rapidly accumulates due to significant anaerobic energy usage and muscle metabolite accumulation.
+
+- **Extreme Domain (above {map_watts:.0f} W)**:  
+  Efforts exceeding your Maximal Aerobic Power (MAP) ({map_watts:.0f} W) are highly anaerobic and very short-lived. Fatigue happens rapidly, driven by immediate depletion of high-energy phosphates, muscle acidity, and reduced neuromuscular function.
+
+Your **fractional utilisation ({frac_util:.0%})** highlights your aerobic efficiency—indicating how closely your CP aligns with your MAP. A higher fractional utilisation reflects stronger aerobic capacity and superior endurance potential.
+
+Precisely understanding where your phase transitions—PT1 (~{lt1:.0f} W), CP ({cp:.0f} W), and MAP ({map_watts:.0f} W)—occur empowers you to train accurately, pace effectively, and recover optimally. Remember, these transitions represent physiological zones rather than exact points, typically varying by ±10-15 W due to daily metabolic and muscular variations.
+
     """, unsafe_allow_html=True)
