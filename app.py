@@ -86,7 +86,7 @@ if uploaded_files:
         "Domain": ["Moderate", "Heavy", "Severe", "Extreme"],
         "Start": [0, lt1, cp, map_watts],
         "End": [lt1, cp, map_watts, map_watts + 150],
-        "Color": ["#d4e157", "#ffee58", "#ff7043", "#e53935"]
+        "Color": ["#aed581", "#fff176", "#ff8a65", "#e57373"]
     })
 
     base = alt.Chart(domain_ranges).mark_bar().encode(
@@ -125,10 +125,10 @@ if uploaded_files:
         text-align: center;
         font-size: 0.9rem;
     }}
-    .mod {{ background-color: #d4e15722; border-top: 5px solid #d4e157; }}
-    .heav {{ background-color: #ffee5822; border-top: 5px solid #ffee58; }}
-    .sev {{ background-color: #ff704322; border-top: 5px solid #ff7043; }}
-    .ext {{ background-color: #e5393522; border-top: 5px solid #e53935; }}
+    .mod {{ background-color: #aed581; border-top: 5px solid #aed581; }}
+    .heav {{ background-color: #fff176; border-top: 5px solid #fff176; }}
+    .sev {{ background-color: #ff8a65; border-top: 5px solid #ff8a65; }}
+    .ext {{ background-color: #e57373; border-top: 5px solid #e57373; }}
     </style>
 
     <div class="domain-boxes">
