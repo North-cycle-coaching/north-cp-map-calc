@@ -140,3 +140,81 @@ if uploaded_files:
     """)
 
     st.markdown("---")
+
+    # Intensity Domains Visual
+    st.header("Exercise Intensity Domains")
+
+    lt1 = cp * 0.75
+    domain_ranges = pd.DataFrame({
+        "Domain": ["Moderate", "Heavy", "Severe", "Extreme"],
+        "Start": [0, lt1, cp, map_watts],
+        "End": [lt1, cp, map_watts, map_watts + 150],
+        "Color": ["#d4e157", "#ffee58", "#ff7043", "#e53935"]
+    })
+
+    base = alt.Chart(domain_ranges).mark_bar().encode(
+        x=alt.X("Start:Q", title="Power (Watts)"),
+        x2="End:Q",
+        y=alt.value(60),
+        color=alt.Color("Domain:N", scale=alt.Scale(range=domain_ranges["Color"].tolist()), legend=None)
+    ).properties(
+        width=800,
+        height=120
+    )
+
+    marker_df = pd.DataFrame({
+        "value": [lt1, cp, map_watts]
+    })
+
+    lines = alt.Chart(marker_df).mark_rule(strokeDash=[4, 4], color="black").encode(
+        x='value:Q'
+    )
+
+    st.altair_chart(base + lines, use_container_width=False)
+
+    st.markdown(f"""
+    <style>
+    .domain-boxes {{
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        font-family: sans-serif;
+    }}
+    .domain-box {{
+        flex: 1;
+        background-color: #f9f9f9;
+        padding: 0.8rem;
+        margin: 0 0.5rem;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 0.9rem;
+    }}
+    .mod {{ border-top: 5px solid #d4e157; }}
+    .heav {{ border-top: 5px solid #ffee58; }}
+    .sev {{ border-top: 5px solid #ff7043; }}
+    .ext {{ border-top: 5px solid #e53935; }}
+    </style>
+
+    <div class="domain-boxes">
+        <div class="domain-box mod">
+            <strong>Moderate</strong><br>
+            0 – {lt1:.0f} W<br>
+            Sustainable aerobic
+        </div>
+        <div class="domain-box heav">
+            <strong>Heavy</strong><br>
+            {lt1:.0f} – {cp:.0f} W<br>
+            Lactate steady state
+        </div>
+        <div class="domain-box sev">
+            <strong>Severe</strong><br>
+            {cp:.0f} – {map_watts:.0f} W<br>
+            VO₂ + W′ depletion
+        </div>
+        <div class="domain-box ext">
+            <strong>Extreme</strong><br>
+            > {map_watts:.0f} W<br>
+            Sprints & fatigue
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
