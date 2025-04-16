@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
-st.title("North | Power Test Insights")
+st.title("Cycling Test Analysis — CP, MAP, W′")
 
 # Get rider weight first
 weight_kg = st.number_input("Enter body weight (kg)", min_value=30.0, max_value=120.0, value=70.0)
@@ -63,14 +63,13 @@ if uploaded_files:
     map_watts = peak_6min
     frac_util = cp / map_watts
 
-    # Display metrics
     st.header("Best Peak Powers Across All Uploaded Files")
     col1, col2, col3 = st.columns(3)
     col1.metric("Peak 3-min Power", f"{peak_3min:.0f} W")
     col2.metric("Peak 6-min Power (MAP)", f"{peak_6min:.0f} W")
     col3.metric("Peak 12-min Power", f"{peak_12min:.0f} W")
 
-    st.header("Your Metabolic Signature")
+    st.header("CP, W′, MAP, Fractional Utilisation")
     col1, col2, col3 = st.columns(3)
     col1.metric("Critical Power (CP)", f"{cp:.0f} W", f"{cp/weight_kg:.2f} W/kg")
     col2.metric("W′", f"{w_prime/1000:.1f} kJ", f"{(w_prime/1000)/weight_kg:.2f} kJ/kg")
@@ -80,7 +79,6 @@ if uploaded_files:
 
     st.markdown("---")
 
-    # Anaerobic Energy Contribution Chart
     st.header("Anaerobic Energy Contribution")
 
     watts = np.linspace(0, map_watts + 100, 200)
@@ -122,8 +120,7 @@ if uploaded_files:
 
     st.markdown("---")
 
-    # Table of W′ burn rates
-    st.subheader("W′ Burn Rate by Power Level")
+    st.subheader("Power & Time Above CP")
 
     step_powers = np.arange(cp + 10, cp + 310, 10)
     depletion_times = w_prime / (step_powers - cp)
@@ -143,4 +140,3 @@ if uploaded_files:
     """)
 
     st.markdown("---")
-
