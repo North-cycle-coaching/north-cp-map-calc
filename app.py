@@ -77,7 +77,28 @@ if uploaded_files:
 
     st.metric("Fractional Utilisation", f"{frac_util:.2%}")
 
-    st.markdown("---")
+    st.markdown(f"""
+The Exercise Intensity Domains represent physiologically distinct ranges of cycling effort. Each domain reflects how your body meets the energy demands of a given power output—whether through fat oxidation, carbohydrate metabolism, or anaerobic systems.
+
+What separates these domains are two key physiological thresholds:
+
+**Phase Transition 1 (PT1)** — also called Aerobic Threshold or LT1 — marks the point at which fat-burning becomes less dominant and carbohydrate use begins to rise. For this rider, PT1 is estimated at **{lt1:.0f} watts** (75% of CP).
+
+**Phase Transition 2 (PT2)** is the Critical Power (CP), the tipping point where sustained aerobic metabolism ends. Above this, the rider begins drawing from W′ — a finite anaerobic reserve. PT2 is measured at **{cp:.0f} watts**.
+
+Your MAP (Maximal Aerobic Power) is **{map_watts:.0f} watts**, and your fractional utilisation (how close CP is to MAP) is **{frac_util:.0%}**.
+
+### Here’s how your zones break down:
+
+- **Moderate (0–{lt1:.0f} W):** Fully aerobic. Sustainable for hours. Fat oxidation is dominant.
+- **Heavy ({lt1:.0f}–{cp:.0f} W):** Still aerobic but with rising lactate. Often called tempo or sweet spot.
+- **Severe ({cp:.0f}–{map_watts:.0f} W):** Requires W′. Lactate and fatigue accumulate quickly. Used for intervals and attacks.
+- **Extreme (> {map_watts:.0f} W):** Short sprints. Completely anaerobic. Power not sustainable beyond ~30–60 seconds.
+
+Understanding where these transitions occur helps you pace effectively, train specifically, and recover strategically. Knowing that your PT1 is {lt1:.0f} watts gives you a reliable ceiling for fat metabolism work. PT2 at {cp:.0f} W is your break point—cross it, and fatigue becomes exponential.
+""")
+
+st.markdown("---")
 
     st.header("Anaerobic Energy Contribution")
 
