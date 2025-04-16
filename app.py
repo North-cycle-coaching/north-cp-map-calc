@@ -137,3 +137,95 @@ if uploaded_files:
     The further above CP you ride, the shorter you can hold that power before fully depleting W′.
     These values help with pacing strategies and understanding your sprint or breakaway capacity.
     """)
+
+    st.markdown("---")
+
+    st.header("Exercise Intensity Domains")
+
+    lt1 = cp * 0.75
+    domain_ranges = pd.DataFrame({
+        "Domain": ["Moderate", "Heavy", "Severe", "Extreme"],
+        "Start": [0, lt1, cp, map_watts],
+        "End": [lt1, cp, map_watts, map_watts + 150],
+        "Color": ["#aed581", "#fff176", "#ff8a65", "#e57373"]
+    })
+
+    color_scale = alt.Scale(domain=domain_ranges["Domain"].tolist(), range=domain_ranges["Color"].tolist())
+
+    base = alt.Chart(domain_ranges).mark_bar().encode(
+        x=alt.X("Start:Q", title="Power (Watts)"),
+        x2="End:Q",
+        y=alt.value(60),
+        color=alt.Color("Domain:N", scale=color_scale, legend=None)
+    ).properties(
+        width=800,
+        height=120
+    )
+
+    marker_df = pd.DataFrame({
+        "value": [lt1, cp, map_watts]
+    })
+
+    lines = alt.Chart(marker_df).mark_rule(strokeDash=[4, 4], color="black").encode(
+        x='value:Q'
+    )
+
+    st.altair_chart(base + lines, use_container_width=False)
+
+    st.markdown(f"""
+    <style>
+    .domain-boxes {{
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        font-family: sans-serif;
+    }}
+    .domain-box {{
+        flex: 1;
+        padding: 0.8rem;
+        margin: 0 0.5rem;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 0.9rem;
+    }}
+    .mod {{ background-color: #aed581; border-top: 5px solid #aed581; }}
+    .heav {{ background-color: #fff176; border-top: 5px solid #fff176; }}
+    .sev {{ background-color: #ff8a65; border-top: 5px solid #ff8a65; }}
+    .ext {{ background-color: #e57373; border-top: 5px solid #e57373; }}
+    </style>
+
+    <div class="domain-boxes">
+        <div class="domain-box mod">
+            <strong>Moderate</strong><br>
+            0 – {lt1:.0f} W<br>
+            Sustainable aerobic
+        </div>
+        <div class="domain-box heav">
+            <strong>Heavy</strong><br>
+            {lt1:.0f} – {cp:.0f} W<br>
+            Lactate steady state
+        </div>
+        <div class="domain-box sev">
+            <strong>Severe</strong><br>
+            {cp:.0f} – {map_watts:.0f} W<br>
+            VO₂ + W′ depletion
+        </div>
+        <div class="domain-box ext">
+            <strong>Extreme</strong><br>
+            > {map_watts:.0f} W<br>
+            Sprints & fatigue
+        </div>
+    </div>
+
+    ---
+
+    The Exercise Intensity Domains are structured ranges of power that reflect distinct physiological behaviour:
+
+    **Phase Transition 1 (PT1)** is ~{lt1:.0f} W, where fat metabolism gives way to carbohydrates.
+    **Phase Transition 2 (PT2)** is your CP at {cp:.0f} W, marking the upper steady state boundary.
+
+    Above CP, you enter Severe and Extreme domains where W′ depletion defines your limit.
+    Fractional utilisation ({frac_util:.0%}) reflects how close your CP is to MAP — an indicator of aerobic efficiency.
+
+    Use these thresholds to plan your training, recovery and pacing. Understanding your transitions helps maximise aerobic conditioning and protect anaerobic reserves when it counts.
+    """, unsafe_allow_html=True)
