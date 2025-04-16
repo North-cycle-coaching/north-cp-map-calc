@@ -6,7 +6,7 @@ import altair as alt
 
 st.title("Cycling Test Analysis — CP, MAP, W′")
 
-# Rider weight
+# Get rider weight first
 weight_kg = st.number_input("Enter body weight (kg)", min_value=30.0, max_value=120.0, value=70.0)
 
 # Upload .fit files
@@ -40,10 +40,16 @@ if uploaded_files:
     combined_power = pd.concat(all_data, ignore_index=True)
     combined_power['seconds'] = np.arange(len(combined_power))
 
-    # Identify peak intervals
+    # Identify peak effort locations
     i3s, i3e = get_peak_interval(combined_power, 180)
     i6s, i6e = get_peak_interval(combined_power, 360)
     i12s, i12e = get_peak_interval(combined_power, 720)
+
+    # Tag the highlight areas
+    combined_power['highlight'] = 'Other'
+    combined_power.loc[i3s:i3e, 'highlight'] = '3-min'
+    combined_power.loc[i6s:i6e, 'highlight'] = '6-min'
+    combined_power.loc[i12s:i12e, 'highlight'] = '12-min'
 
     # Peak power values
     peak_3min = combined_power.loc[i3s:i3e, 'power'].mean()
@@ -87,7 +93,7 @@ if uploaded_files:
     base = alt.Chart(vo2_df).encode(x=alt.X("Power (W):Q"))
 
     demand_line = base.mark_line(color="#1f77b4", strokeWidth=2).encode(
-        y=alt.Y("O₂ Demand:Q", title="Oxygen Equivalent")
+        y=alt.Y("O₂ Demand:Q", title="Oxygen Equivalent (arbitrary units)")
     )
 
     uptake_line = base.mark_line(color="#2ca02c", strokeWidth=2).encode(
@@ -102,7 +108,13 @@ if uploaded_files:
     st.altair_chart(area + demand_line + uptake_line, use_container_width=True)
 
     st.markdown("""
-    The gap between O₂ demand and uptake represents anaerobic energy contribution, depleting W′.
+    The Anaerobic Energy Contribution chart compares the oxygen demand of increasing power outputs
+    with the athlete's maximum sustainable aerobic capacity (O₂ uptake). Below Critical Power (CP),
+    the two curves overlap — meaning energy demands are fully met aerobically. Once power exceeds CP,
+    the oxygen demand curve continues rising, but oxygen uptake plateaus, creating the shaded gap.
+
+    This gap represents energy that must be supplied anaerobically — from the finite W′ battery.
+    The larger the gap and the longer you hold it, the faster W′ is depleted.
     """)
 
     st.markdown("---")
@@ -120,40 +132,100 @@ if uploaded_files:
 
     st.dataframe(df_burn, use_container_width=True)
 
+    st.markdown("""
+    This table shows the predicted time to exhaustion for constant efforts above Critical Power.
+    The further above CP you ride, the shorter you can hold that power before fully depleting W′.
+    These values help with pacing strategies and understanding your sprint or breakaway capacity.
+    """)
+
     st.markdown("---")
 
-    # Interactive Intensity Domains
-    st.header("Interactive Exercise Intensity Domains")
+    st.header("Exercise Intensity Domains")
 
     lt1 = cp * 0.75
-
     domain_ranges = pd.DataFrame({
         "Domain": ["Moderate", "Heavy", "Severe", "Extreme"],
         "Start": [0, lt1, cp, map_watts],
-        "End": [lt1, cp, map_watts, map_watts + 200],
-        "Description": [
-            "Fat-burning",
-            "Carb-burning steady-state",
-            "High-intensity anaerobic",
-            "Maximum sprint"
-        ],
+        "End": [lt1, cp, map_watts, map_watts + 150],
         "Color": ["#aed581", "#fff176", "#ff8a65", "#e57373"]
     })
 
     color_scale = alt.Scale(domain=domain_ranges["Domain"].tolist(), range=domain_ranges["Color"].tolist())
 
     base = alt.Chart(domain_ranges).mark_bar().encode(
-        x=alt.X("Start:Q", title="Power (W)"),
+        x=alt.X("Start:Q", title="Power (Watts)"),
         x2="End:Q",
-        y=alt.value(50),
-        color=alt.Color("Domain:N", scale=color_scale, legend=None),
-        tooltip=["Domain", "Start", "End", "Description"]
-    ).properties(width=800, height=100)
+        y=alt.value(60),
+        color=alt.Color("Domain:N", scale=color_scale, legend=None)
+    ).properties(
+        width=800,
+        height=120
+    )
 
-    thresholds = pd.DataFrame({"Threshold": ["PT1", "CP (PT2)", "MAP"], "Value": [lt1, cp, map_watts]})
+    marker_df = pd.DataFrame({
+        "value": [lt1, cp, map_watts]
+    })
 
-    lines = alt.Chart(thresholds).mark_rule(strokeDash=[6,4], color="black").encode(x="Value:Q")
-    text = alt.Chart(thresholds).mark_text(dy=-15).encode(x='Value:Q', text='Threshold')
+    lines = alt.Chart(marker_df).mark_rule(strokeDash=[4, 4], color="black").encode(
+        x='value:Q'
+    )
 
-    st.altair_chart((base + lines + text).interactive(), use_container_width=True)
+    st.altair_chart(base + lines, use_container_width=False)
 
+    st.markdown(f"""
+    <style>
+    .domain-boxes {{
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        font-family: sans-serif;
+    }}
+    .domain-box {{
+        flex: 1;
+        padding: 0.8rem;
+        margin: 0 0.5rem;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 0.9rem;
+    }}
+    .mod {{ background-color: #aed581; border-top: 5px solid #aed581; }}
+    .heav {{ background-color: #fff176; border-top: 5px solid #fff176; }}
+    .sev {{ background-color: #ff8a65; border-top: 5px solid #ff8a65; }}
+    .ext {{ background-color: #e57373; border-top: 5px solid #e57373; }}
+    </style>
+
+    <div class="domain-boxes">
+        <div class="domain-box mod">
+            <strong>Moderate</strong><br>
+            0 – {lt1:.0f} W<br>
+            Sustainable aerobic
+        </div>
+        <div class="domain-box heav">
+            <strong>Heavy</strong><br>
+            {lt1:.0f} – {cp:.0f} W<br>
+            Lactate steady state
+        </div>
+        <div class="domain-box sev">
+            <strong>Severe</strong><br>
+            {cp:.0f} – {map_watts:.0f} W<br>
+            VO₂ + W′ depletion
+        </div>
+        <div class="domain-box ext">
+            <strong>Extreme</strong><br>
+            > {map_watts:.0f} W<br>
+            Sprints & fatigue
+        </div>
+    </div>
+
+    ---
+
+    The Exercise Intensity Domains are structured ranges of power that reflect distinct physiological behaviour:
+
+    **Phase Transition 1 (PT1)** is ~{lt1:.0f} W, where fat metabolism gives way to carbohydrates.
+    **Phase Transition 2 (PT2)** is your CP at {cp:.0f} W, marking the upper steady state boundary.
+
+    Above CP, you enter Severe and Extreme domains where W′ depletion defines your limit.
+    Fractional utilisation ({frac_util:.0%}) reflects how close your CP is to MAP — an indicator of aerobic efficiency.
+
+    Use these thresholds to plan your training, recovery and pacing. Understanding your transitions helps maximise aerobic conditioning and protect anaerobic reserves when it counts.
+    """, unsafe_allow_html=True)
