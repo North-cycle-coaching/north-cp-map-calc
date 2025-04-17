@@ -90,7 +90,8 @@ if uploaded_files:
 
     # Dashboard THREE
     with bottom_left.expander("Anaerobic Energy Contribution (view full analysis)"):
-        st.altair_chart(alt.layer().add_marks(area, demand_line, uptake_line), use_container_width=True)
+       st.altair_chart(area + demand_line + uptake_line, use_container_width=True)
+
         st.markdown("Detailed explanation of anaerobic contribution as in original code.")
 
     # Dashboard FOUR
