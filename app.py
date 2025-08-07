@@ -14,9 +14,13 @@ if uploaded_files:
     all_data = []
 
     def get_peak_interval(df, window):
+        """Return the inclusive start and end indices of the highest average
+        power interval of a given window size."""
+
         rolling = df['power'].rolling(window=window).mean()
-        peak_start = rolling.idxmax() - window + 1
-        peak_end = peak_start + window
+        idx_last = rolling.idxmax()
+        peak_start = idx_last - window + 1
+        peak_end = idx_last  # inclusive end index
         return peak_start, peak_end
 
     for file in uploaded_files:
